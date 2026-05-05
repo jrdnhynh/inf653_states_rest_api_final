@@ -52,11 +52,6 @@ const seedStates = [
             'The cheeseburger was allegedly invented in Denver, Colorado in 1935.',
             'Colorado is home to the largest flat-top mountain in the world, Grand Mesa.'
         ]
-    },
-    {
-        // ri needs empty array per test requirements
-        stateCode: 'RI',
-        funfacts: []
     }
 ];
 

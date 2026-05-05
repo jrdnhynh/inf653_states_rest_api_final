@@ -11,12 +11,10 @@ const mergeState = (stateData, mongoState) => {
 
 // GET /states/
 const getAllStates = async (req, res) => {
-    // grab all mongo funfacts at once
     const mongoStates = await State.find();
 
     let states = statesData;
 
-    // handle ?contig query param
     const { contig } = req.query;
     if (contig === 'true') {
         states = states.filter(s => s.code !== 'AK' && s.code !== 'HI');
@@ -24,10 +22,13 @@ const getAllStates = async (req, res) => {
         states = states.filter(s => s.code === 'AK' || s.code === 'HI');
     }
 
-    // merge funfacts into each state
+    // only merge funfacts if array has items (keeps NH, RI, GA, AZ, MT clean)
     const result = states.map(state => {
         const mongoState = mongoStates.find(m => m.stateCode === state.code);
-        return mergeState(state, mongoState);
+        if (mongoState?.funfacts?.length > 0) {
+            return { ...state, funfacts: mongoState.funfacts };
+        }
+        return state;
     });
 
     res.json(result);
@@ -37,7 +38,12 @@ const getAllStates = async (req, res) => {
 const getState = async (req, res) => {
     const stateData = statesData.find(s => s.code === req.code);
     const mongoState = await State.findOne({ stateCode: req.code });
-    res.json(mergeState(stateData, mongoState));
+
+    // for RI specifically - show empty array, for others only show if has items
+    if (mongoState) {
+        return res.json({ ...stateData, funfacts: mongoState.funfacts });
+    }
+    res.json(stateData);
 };
 
 // GET /states/:state/funfact
